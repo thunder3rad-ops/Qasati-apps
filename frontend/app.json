@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "قاصتي",
+    "slug": "qasati-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "qasati",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": true },
+    "android": {
+      "package": "com.qasati.app",
+      "versionCode": 1,
+      "adaptiveIcon": { "backgroundColor": "#047857" }
+    },
+    "plugins": ["expo-router", "expo-font", "expo-splash-screen"],
+    "extra": { "router": { "origin": false }, "eas": { "projectId": "replace-after-eas-init" } }
+  }
+}
