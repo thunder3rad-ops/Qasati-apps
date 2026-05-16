@@ -1,58 +1,75 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
-
 export const TOKEN_KEY = 'qasati_token';
 export const ONBOARDED_KEY = 'qasati_onboarded';
 
-async function request(path: string, opts: { method?: string; body?: any; auth?: boolean } = {}) {
-  const { method = 'GET', body, auth = true } = opts;
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (auth) {
-    const token = await AsyncStorage.getItem(TOKEN_KEY);
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
-  const res = await fetch(`${BASE}/api${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  let data: any = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-  if (!res.ok) {
-    const msg = (data && data.detail) || 'حدث خطأ';
-    throw new Error(msg);
-  }
-  return data;
-}
-
 export const api = {
-  sendOtp: (phone: string) => request('/auth/send-otp', { method: 'POST', body: { phone }, auth: false }),
-  verifyOtp: (phone: string, otp: string, name?: string) =>
-    request('/auth/verify-otp', { method: 'POST', body: { phone, otp, name }, auth: false }),
-  me: () => request('/auth/me'),
-  updateProfile: (data: any) => request('/auth/profile', { method: 'PUT', body: data }),
-  verifyKyc: () => request('/auth/verify-kyc', { method: 'POST' }),
+  sendOtp: async (phone: string) => {
+    return { success: true, mock_otp: '123456' };
+  },
 
-  packages: () => request('/packages', { auth: false }),
-  goals: () => request('/goals', { auth: false }),
+  verifyOtp: async (phone: string, otp: string) => {
+    if (otp !== '123456') {
+      throw new Error('رمز التحقق غير صحيح');
+    }
 
-  listChildren: () => request('/children'),
-  createChild: (data: any) => request('/children', { method: 'POST', body: data }),
-  deleteChild: (id: string) => request(`/children/${id}`, { method: 'DELETE' }),
+    return {
+      token: 'demo-token',
+      user: {
+        id: '1',
+        phone,
+        name: 'ولي الأمر',
+        kyc_status: 'pending',
+      },
+      is_new: true,
+    };
+  },
 
-  listSubscriptions: () => request('/subscriptions'),
-  createSubscription: (data: any) => request('/subscriptions', { method: 'POST', body: data }),
+  me: async () => ({
+    id: '1',
+    name: 'ولي الأمر',
+    phone: '',
+    kyc_status: 'pending',
+  }),
 
-  pay: (subscription_id: string, payment_method: string) =>
-    request('/payments/pay', { method: 'POST', body: { subscription_id, payment_method } }),
+  updateProfile: async (data: any) => data,
+  verifyKyc: async () => ({ success: true, kyc_status: 'verified' }),
 
-  transactions: () => request('/transactions'),
-  notifications: () => request('/notifications'),
-  markAllRead: () => request('/notifications/mark-read', { method: 'POST' }),
+  packages: async () => [
+    { id: 'basic', name: 'خطة دراسة جامعية', monthly_amount: 50000 },
+    { id: 'premium', name: 'خطة زواج', monthly_amount: 100000 },
+    { id: 'gold', name: 'خطة مشروع', monthly_amount: 150000 },
+  ],
 
-  dashboard: () => request('/dashboard'),
+  goals: async () => [
+    { id: 'university', name: 'دراسة جامعية' },
+    { id: 'marriage', name: 'زواج' },
+    { id: 'business', name: 'مشروع' },
+  ],
+
+  listChildren: async () => [],
+  createChild: async (data: any) => ({ id: Date.now().toString(), ...data }),
+  deleteChild: async () => ({ success: true }),
+
+  listSubscriptions: async () => [],
+  createSubscription: async (data: any) => ({ id: Date.now().toString(), ...data }),
+
+  pay: async () => ({ success: true }),
+  transactions: async () => [],
+  notifications: async () => [],
+  markAllRead: async () => ({ success: true }),
+
+  dashboard: async () => ({
+    total_saved: 0,
+    total_target: 0,
+    monthly_commitment: 0,
+    children_count: 0,
+    active_subscriptions: 0,
+    children: [],
+    subscriptions: [],
+    recent_transactions: [],
+    unread_notifications: 0,
+  }),
 };
 
 export const storage = {
